@@ -5,10 +5,22 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
+#include "SPIFFS.h"
+#include "AudioFileSourceSPIFFS.h"
+#include "AudioFileSourceID3.h"
+#include "AudioGeneratorMP3.h"
+#include "AudioOutputI2S.h"
+
 #include "Free_Fonts.h" // Include the header file attached to this sketch
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+
+AudioGeneratorMP3 *mp3 = NULL;
+AudioFileSourceSPIFFS *file = NULL;
+AudioOutputI2S *out = NULL;
+AudioFileSourceID3 *id3 = NULL;
+
 
 // Configure the name and password of the connected wifi and your MQTT Serve host.  配置所连接wifi的名称、密码以及你MQTT服务器域名
 const char* ssid = "***REMOVED***";
@@ -30,11 +42,41 @@ CRGB leds[NUM_LEDS];
 void setup(void) {
     M5.begin();
     M5.Power.begin();
-    FastLED.addLeds<NEOPIXEL, 15>(leds, NUM_LEDS);
+
+    SPIFFS.begin();
 
     setupWifi();
     client.setServer(mqtt_server, 1883);
     client.setCallback(mqtt_callback);
+
+    FastLED.addLeds<NEOPIXEL, 15>(leds, NUM_LEDS);
+}
+
+void stop_sound() {
+    mp3->stop();
+    // delete mp3;
+    mp3 = NULL;
+    // delete out;
+    // out = NULL;
+    // delete id3;
+    // id3 = NULL;
+    // delete file;
+    // file = NULL;
+}
+
+void play_sound(const char *sound) {    
+    if (mp3) {
+        stop_sound();
+    }
+
+    if (strlen(sound)) {
+        file = new AudioFileSourceSPIFFS(sound);
+        id3 = new AudioFileSourceID3(file);
+        out = new AudioOutputI2S(0, 1); // Output to builtInDAC
+        out->SetOutputModeMono(true);
+        mp3 = new AudioGeneratorMP3();
+        mp3->begin(id3, out);
+    }
 }
 
 // void rainbow(loops=120, ms_delay=1, sat=1.0, bri=0.2) {
@@ -104,6 +146,11 @@ void mqtt_callback(char* raw_topic, byte* payload, unsigned int length) {
         M5.Lcd.setTextColor(TFT_WHITE, TFT_BLACK);
         M5.Lcd.setFreeFont(FMB24);
 
+        if (doc.containsKey("sound")) {
+            const char *sound = doc["sound"];
+            play_sound(sound);
+        }
+
         if (doc.containsKey("title")) {
             const char *title = doc["title"];
             if (!last_title.equals(title)) {
@@ -165,6 +212,13 @@ void loop() {
       reConnect();
     }
     client.loop();
+
+    if (mp3 && mp3->isRunning()) {
+        if (!mp3->loop()) {
+            stop_sound();
+        }
+    }
+
     M5.update();
 
     if (M5.BtnA.wasPressed()) {
