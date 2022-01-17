@@ -13,34 +13,31 @@
 
 #include "Free_Fonts.h" // Include the header file attached to this sketch
 
+#include "led_animation.h"
+
+// Configure the name and password of the connected wifi and your MQTT Serve host.
+const char* ssid = "***REMOVED***";
+const char* password = "***REMOVED***";
+const char* mqtt_server = "mqtt.***REMOVED***";
 WiFiClient espClient;
 PubSubClient client(espClient);
+
+String last_title = "";
 
 AudioGeneratorMP3 *mp3;
 AudioFileSourceSPIFFS *file;
 AudioFileSourceID3 *id3;
 AudioOutputI2S *out;
 
-// Configure the name and password of the connected wifi and your MQTT Serve host.
-const char* ssid = "***REMOVED***";
-const char* password = "***REMOVED***";
-const char* mqtt_server = "mqtt.***REMOVED***";
-
-// unsigned long lastMsg = 0;
-// #define MSG_BUFFER_SIZE	(50)
-// char msg[MSG_BUFFER_SIZE];
-// int value = 0;
-
 void setupWifi();
 void mqtt_callback(char* topic, byte* payload, unsigned int length);
 void reConnect();
 
-#define NUM_LEDS 10
-CRGB leds[NUM_LEDS];
-
 void setup(void) {
     M5.begin();
     M5.Power.begin();
+    M5.Power.setWakeupButton(BUTTON_A_PIN);
+    M5.Lcd.setFreeFont(FMB12);
 
     SPIFFS.begin();
 
@@ -48,27 +45,11 @@ void setup(void) {
     client.setServer(mqtt_server, 1883);
     client.setCallback(mqtt_callback);
 
-    FastLED.addLeds<NEOPIXEL, 15>(leds, NUM_LEDS);
+    led_animation_setup();
 
     out = new AudioOutputI2S(0, 1); // Output to builtInDAC
     out->SetOutputModeMono(true);
 }
-
-int8_t getBatteryLevel() {
-    Wire.beginTransmission(0x75);
-    Wire.write(0x78);
-    if (Wire.endTransmission(false) == 0 && Wire.requestFrom(0x75, 1)) {
-        switch (Wire.read() & 0xF0) {
-        case 0xE0: return 25;
-        case 0xC0: return 50;
-        case 0x80: return 75;
-        case 0x00: return 100;
-        default: return 0;
-        }
-    }
-    return -1;
-}
-
 
 void stop_sound() {
     mp3->stop();
@@ -95,48 +76,6 @@ void play_sound(const char *sound) {
     }
 }
 
-// void rainbow(loops=120, ms_delay=1, sat=1.0, bri=0.2) {
-void rainbow(int loops = 120, int ms_delay = 1, float sat = 1.0,
-             float bri = 0.2) {
-    for (int pos = 0; pos < loops; pos++) {
-        for (int i = 0; i < NUM_LEDS; i++) {
-            float dHue = 360.0 / NUM_LEDS * (pos + i);
-            float hue = dHue * 360;
-            leds[i] = CHSV(hue, sat, bri);
-        }
-
-        FastLED.show();
-        if (ms_delay) {
-            delay(ms_delay);
-        }
-    }
-}
-
-CRGB decode_color_crgb(String color) {
-    if (color == "black") return CRGB::Black;
-    if (color == "white") return CRGB::White;
-    if (color == "red") return CRGB::Red;
-    if (color == "green") return CRGB::Green;
-    if (color == "blue") return CRGB::Blue;
-    if (color == "yellow") return CRGB::Yellow;
-    return CRGB::Black;
-}
-
-void led_chase(String color) {
-    CRGB led_color = decode_color_crgb(color);
-    FastLED.setBrightness(128);
-    int loops = 20;
-    for (int l = 0; l < loops; l++) {
-        for (int i = 0; i < NUM_LEDS; i++) {
-            leds[i] = led_color;
-            FastLED.delay(10);
-            if (l != loops - 1) {
-                leds[i] = CRGB::Black;
-            }
-        }
-    }
-}
-
 int decode_color_tft(String color) {
     if (color == "black") return TFT_BLACK;
     if (color == "white") return TFT_WHITE;
@@ -147,14 +86,24 @@ int decode_color_tft(String color) {
     return TFT_BLACK;
 }
 
-String last_title = "";
-
 void mqtt_callback(char* raw_topic, byte* payload, unsigned int length) {
     StaticJsonDocument<256> doc;
-    deserializeJson(doc, payload, length);
 
     String topic = String(raw_topic);
+
+    if (topic.equals("m5go/sleep")) {
+        if (length >= 5 && strcmp("light", (const char *)payload)) {
+            led_animation_stop();
+            M5.Lcd.setBrightness(0);
+            // M5.Power.lightSleep(SLEEP_SEC(10));
+            return;
+        }
+    }
+
+    M5.Lcd.setBrightness(200);
+
     // {"title":"WASHING","subtitle":"120 W","color":"green","menu":["check",null,"off"]}
+    deserializeJson(doc, payload, length);
     if (topic.equals("m5go/update")) {
         M5.Lcd.setTextDatum(MC_DATUM);
         M5.Lcd.setTextPadding(10);
@@ -214,18 +163,23 @@ void mqtt_callback(char* raw_topic, byte* payload, unsigned int length) {
 
         if (doc.containsKey("color")) {
             const char *color = doc["color"];
-            led_chase(color);
+            int animation = 2; // SpinStop
+            if (doc.containsKey("animation")) {
+                animation = doc["animation"];
+            }
+
+            led_animation(animation, 150, color);
+            // led_chase(color);
         }
     }
 }
 
-#define PULSE_TICKS 8192*2
-int pulse_delay = PULSE_TICKS;
-
 void loop() {
     if (!client.connected()) {
-      reConnect();
+        reConnect();
+        client.publish("m5go/button", "P");
     }
+
     client.loop();
 
     if (mp3 && mp3->isRunning()) {
@@ -234,8 +188,9 @@ void loop() {
         }
     }
 
-    M5.update();
+    led_animation_loop();
 
+    M5.update();
     if (M5.BtnA.wasPressed()) {
         client.publish("m5go/button", "A");
     }
@@ -251,7 +206,9 @@ void loop() {
 
 void setupWifi() {
     delay(10);
-    M5.Lcd.printf("Connecting to %s",ssid);
+    M5.Lcd.clearDisplay();
+    M5.Lcd.setCursor(0, 10);
+    M5.Lcd.printf("Connecting to wifi");
     WiFi.mode(WIFI_STA);  //Set the mode to WiFi station mode. 
     WiFi.begin(ssid, password); //Start Wifi connection.
 
@@ -265,7 +222,9 @@ void setupWifi() {
 
 void reConnect() {
     while (!client.connected()) {
-        M5.Lcd.print("Attempting MQTT connection...");
+        M5.Lcd.clearDisplay();
+        M5.Lcd.setCursor(0, 10);
+        M5.Lcd.print("Connecting to MQTT...");
         // Create a random client ID.
         String clientId = "M5Go-";
         clientId += String(random(0xffff), HEX);
