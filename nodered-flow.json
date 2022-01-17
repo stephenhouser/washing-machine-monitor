@@ -1,0 +1,877 @@
+[
+	{
+		"id": "79c2c3a003bb1c4a",
+		"type": "tab",
+		"label": "Orange Display",
+		"disabled": false,
+		"info": "",
+		"env": []
+	},
+	{
+		"id": "555941d8fdb6c02a",
+		"type": "function",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Seven Segment",
+		"func": "function toSevenSegment(floatValue) {\n    var seven_segment_codes = {\n        \"0\": 0x3F,   // 0\n        \"1\": 0x06,   // 1\n        \"2\": 0x5B,   // 2\n        \"3\": 0x4F,   // 3\n        \"4\": 0x66,   // 4\n        \"5\": 0x6D,   // 5\n        \"6\": 0x7D,   // 6\n        \"7\": 0x07,   // 7\n        \"8\": 0x7F,   // 8\n        \"9\": 0x6F,   // 9\n        \"A\": 0x77,   // A\n        \"B\": 0x7C,   // B\n        \"C\": 0x39,   // C\n        \"D\": 0x5E,   // D\n        \"E\": 0x79,   // E\n        \"F\": 0x71,   // F\n        \"-\": 0x40,\t // -\n    }\n\n    var fixedValue = Number.parseFloat(floatValue).toFixed(0)\n    if (!isNaN(fixedValue)) {\n        var fixedString = fixedValue.toString().replace('.', '');\n\n        var digits = Array.from(fixedString, function (char) {\n            return seven_segment_codes[char];\n        });\n\n        // prepend leading blank if needed\n        while (digits.length < 4) {\n            digits.unshift(0);\n        }\n\n        // add in zero for colon segment\n        digits.splice(2, 0, 0);\n\n        // add decimal point to 2nd from last char\n        //digits[3] |= 0x80;\n\n        return digits;\n    }\n\n    return null;\n}\n\nvar codes = toSevenSegment(msg.payload);\nmsg.payload = codes.join(',');\nreturn msg;",
+		"outputs": 1,
+		"noerr": 0,
+		"initialize": "",
+		"finalize": "",
+		"libs": [],
+		"x": 300,
+		"y": 100,
+		"wires": [
+			[
+				"aa1d6c0dd118b9d0"
+			]
+		]
+	},
+	{
+		"id": "32d8d4e802e97c0b",
+		"type": "server-state-changed",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Power Use",
+		"server": "b8d8d10f.acba5",
+		"version": 3,
+		"exposeToHomeAssistant": false,
+		"haConfig": [
+			{
+				"property": "name",
+				"value": ""
+			},
+			{
+				"property": "icon",
+				"value": ""
+			}
+		],
+		"entityidfilter": "sensor.energy_monitor_electric_consumption_w",
+		"entityidfiltertype": "exact",
+		"outputinitially": false,
+		"state_type": "str",
+		"haltifstate": "",
+		"halt_if_type": "str",
+		"halt_if_compare": "is",
+		"outputs": 1,
+		"output_only_on_state_change": true,
+		"for": 0,
+		"forType": "num",
+		"forUnits": "minutes",
+		"ignorePrevStateNull": false,
+		"ignorePrevStateUnknown": false,
+		"ignorePrevStateUnavailable": false,
+		"ignoreCurrentStateUnknown": false,
+		"ignoreCurrentStateUnavailable": false,
+		"outputProperties": [
+			{
+				"property": "payload",
+				"propertyType": "msg",
+				"value": "",
+				"valueType": "entityState"
+			},
+			{
+				"property": "data",
+				"propertyType": "msg",
+				"value": "",
+				"valueType": "eventData"
+			},
+			{
+				"property": "topic",
+				"propertyType": "msg",
+				"value": "",
+				"valueType": "triggerId"
+			}
+		],
+		"x": 100,
+		"y": 100,
+		"wires": [
+			[
+				"555941d8fdb6c02a"
+			]
+		]
+	},
+	{
+		"id": "aa1d6c0dd118b9d0",
+		"type": "mqtt out",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Orange Display Raw",
+		"topic": "orange-display/print/raw",
+		"qos": "0",
+		"retain": "false",
+		"respTopic": "",
+		"contentType": "",
+		"userProps": "",
+		"correl": "",
+		"expiry": "",
+		"broker": "9e2295db45bd7cb8",
+		"x": 540,
+		"y": 100,
+		"wires": []
+	},
+	{
+		"id": "5108a5b46c151628",
+		"type": "comment",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Show Current Power Use on Orange Display",
+		"info": "",
+		"x": 200,
+		"y": 40,
+		"wires": []
+	},
+	{
+		"id": "994b9bec2a2cc1a6",
+		"type": "server-state-changed",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Extension Cord Power",
+		"server": "b8d8d10f.acba5",
+		"version": 3,
+		"exposeToHomeAssistant": false,
+		"haConfig": [
+			{
+				"property": "name",
+				"value": ""
+			},
+			{
+				"property": "icon",
+				"value": ""
+			}
+		],
+		"entityidfilter": "sensor.switched_extension_cord_power",
+		"entityidfiltertype": "exact",
+		"outputinitially": false,
+		"state_type": "num",
+		"haltifstate": "",
+		"halt_if_type": "str",
+		"halt_if_compare": "is",
+		"outputs": 1,
+		"output_only_on_state_change": true,
+		"for": 0,
+		"forType": "num",
+		"forUnits": "minutes",
+		"ignorePrevStateNull": false,
+		"ignorePrevStateUnknown": false,
+		"ignorePrevStateUnavailable": false,
+		"ignoreCurrentStateUnknown": false,
+		"ignoreCurrentStateUnavailable": false,
+		"outputProperties": [
+			{
+				"property": "payload",
+				"propertyType": "msg",
+				"value": "",
+				"valueType": "entityState"
+			},
+			{
+				"property": "data",
+				"propertyType": "msg",
+				"value": "",
+				"valueType": "eventData"
+			},
+			{
+				"property": "topic",
+				"propertyType": "msg",
+				"value": "",
+				"valueType": "triggerId"
+			}
+		],
+		"x": 140,
+		"y": 200,
+		"wires": [
+			[]
+		]
+	},
+	{
+		"id": "dc3f2b62f20a295a",
+		"type": "mqtt out",
+		"z": "79c2c3a003bb1c4a",
+		"name": "m5go/update",
+		"topic": "",
+		"qos": "1",
+		"retain": "true",
+		"respTopic": "",
+		"contentType": "",
+		"userProps": "",
+		"correl": "",
+		"expiry": "",
+		"broker": "9e2295db45bd7cb8",
+		"x": 880,
+		"y": 640,
+		"wires": []
+	},
+	{
+		"id": "22bc0640b374b53e",
+		"type": "mqtt in",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"topic": "m5go/button/#",
+		"qos": "1",
+		"datatype": "auto",
+		"broker": "9e2295db45bd7cb8",
+		"nl": false,
+		"rap": true,
+		"rh": 0,
+		"inputs": 0,
+		"x": 120,
+		"y": 320,
+		"wires": [
+			[
+				"f1da38bde58c0ab1"
+			]
+		]
+	},
+	{
+		"id": "92f7001d2a4693d1",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Idle",
+		"rules": [
+			{
+				"t": "set",
+				"p": "topic",
+				"pt": "msg",
+				"to": "m5go/update",
+				"tot": "str"
+			},
+			{
+				"t": "set",
+				"p": "payload",
+				"pt": "msg",
+				"to": "{\"title\":\"IDLE\",\"color\":\"blue\",\"animation\":1,\"sound\":null,\"menu\":[\"check\",null,\"off\"]}",
+				"tot": "json"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 410,
+		"y": 620,
+		"wires": [
+			[
+				"dc3f2b62f20a295a",
+				"e544eec30d97daa7"
+			]
+		]
+	},
+	{
+		"id": "be07f3c571dd8368",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Done",
+		"rules": [
+			{
+				"t": "set",
+				"p": "topic",
+				"pt": "msg",
+				"to": "m5go/update",
+				"tot": "str"
+			},
+			{
+				"t": "set",
+				"p": "payload",
+				"pt": "msg",
+				"to": "{\"title\":\"WASH\",\"subtitle\":\"COMPLETE\",\"color\":\"red\",\"animation\":2,\"sound\":\"/bike-horn.mp3\",\"menu\":[\"check\",\"snooze\",\"off\"]}",
+				"tot": "json"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 410,
+		"y": 760,
+		"wires": [
+			[
+				"cdd6262315213f6f"
+			]
+		]
+	},
+	{
+		"id": "30094a481c216fcb",
+		"type": "state-machine",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Washing Machine",
+		"triggerProperty": "topic",
+		"triggerPropertyType": "msg",
+		"stateProperty": "topic",
+		"statePropertyType": "msg",
+		"initialDelay": "0",
+		"persistOnReload": true,
+		"outputStateChangeOnly": true,
+		"throwException": false,
+		"states": [
+			"idle",
+			"wash",
+			"done",
+			"snooze",
+			"off"
+		],
+		"transitions": [
+			{
+				"name": "idle",
+				"from": "*",
+				"to": "idle"
+			},
+			{
+				"name": "power_on",
+				"from": "off",
+				"to": "wash"
+			},
+			{
+				"name": "power_on",
+				"from": "idle",
+				"to": "wash"
+			},
+			{
+				"name": "power_on",
+				"from": "done",
+				"to": "wash"
+			},
+			{
+				"name": "power_on",
+				"from": "snooze",
+				"to": "wash"
+			},
+			{
+				"name": "power_off",
+				"from": "wash",
+				"to": "done"
+			},
+			{
+				"name": "done",
+				"from": "*",
+				"to": "done"
+			},
+			{
+				"name": "A",
+				"from": "off",
+				"to": "idle"
+			},
+			{
+				"name": "B",
+				"from": "done",
+				"to": "snooze"
+			},
+			{
+				"name": "B",
+				"from": "off",
+				"to": "idle"
+			},
+			{
+				"name": "C",
+				"from": "off",
+				"to": "idle"
+			},
+			{
+				"name": "C",
+				"from": "*",
+				"to": "off"
+			},
+			{
+				"name": "P",
+				"from": "*",
+				"to": "idle"
+			}
+		],
+		"x": 550,
+		"y": 320,
+		"wires": [
+			[
+				"70c5c1bf89809632",
+				"7cec374f24fbc42e"
+			]
+		]
+	},
+	{
+		"id": "01e28eb1c9f83e30",
+		"type": "function",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Power On/Off",
+		"func": "const power = parseFloat(msg.payload);\n\nif (power > 1.0) {\n    msg.topic = \"power_on\";\n} else {\n    msg.topic = \"power_off\";\n}\n\nreturn msg;",
+		"outputs": 1,
+		"noerr": 0,
+		"initialize": "",
+		"finalize": "",
+		"libs": [],
+		"x": 340,
+		"y": 260,
+		"wires": [
+			[
+				"30094a481c216fcb"
+			]
+		]
+	},
+	{
+		"id": "3c8a2fd93fad2f6b",
+		"type": "mqtt in",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Switched Outlet",
+		"topic": "shellies/shelly1pm-C82B961DDBAE/relay/0/power",
+		"qos": "0",
+		"datatype": "auto",
+		"broker": "9e2295db45bd7cb8",
+		"nl": false,
+		"rap": true,
+		"rh": 0,
+		"inputs": 0,
+		"x": 120,
+		"y": 260,
+		"wires": [
+			[
+				"01e28eb1c9f83e30",
+				"27ad71edc02918cb"
+			]
+		]
+	},
+	{
+		"id": "963d65eb6cfa6bfd",
+		"type": "switch",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"property": "topic",
+		"propertyType": "msg",
+		"rules": [
+			{
+				"t": "eq",
+				"v": "off",
+				"vt": "str"
+			},
+			{
+				"t": "eq",
+				"v": "idle",
+				"vt": "str"
+			},
+			{
+				"t": "eq",
+				"v": "wash",
+				"vt": "str"
+			},
+			{
+				"t": "eq",
+				"v": "done",
+				"vt": "str"
+			},
+			{
+				"t": "eq",
+				"v": "snooze",
+				"vt": "str"
+			},
+			{
+				"t": "else"
+			}
+		],
+		"checkall": "true",
+		"repair": false,
+		"outputs": 6,
+		"x": 90,
+		"y": 680,
+		"wires": [
+			[
+				"859aa68c24db4712",
+				"28f0424687ab0ed7"
+			],
+			[
+				"92f7001d2a4693d1",
+				"859aa68c24db4712"
+			],
+			[
+				"b138f46d8ecf1b0e",
+				"859aa68c24db4712"
+			],
+			[
+				"be07f3c571dd8368"
+			],
+			[
+				"48c18a6c1312d312"
+			],
+			[]
+		]
+	},
+	{
+		"id": "48c18a6c1312d312",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Snooze",
+		"rules": [
+			{
+				"t": "set",
+				"p": "topic",
+				"pt": "msg",
+				"to": "m5go/update",
+				"tot": "str"
+			},
+			{
+				"t": "set",
+				"p": "payload",
+				"pt": "msg",
+				"to": "{\"title\":\"COMPLETE\",\"subtitle\":\"~quiet~\",\"color\":\"red\",\"animation\":1,\"sound\":null,\"menu\":[\"check\",null,\"off\"]}",
+				"tot": "json"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 400,
+		"y": 880,
+		"wires": [
+			[
+				"dc3f2b62f20a295a",
+				"859aa68c24db4712"
+			]
+		]
+	},
+	{
+		"id": "f1da38bde58c0ab1",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"rules": [
+			{
+				"t": "set",
+				"p": "topic",
+				"pt": "msg",
+				"to": "payload",
+				"tot": "msg"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 340,
+		"y": 320,
+		"wires": [
+			[
+				"30094a481c216fcb"
+			]
+		]
+	},
+	{
+		"id": "b138f46d8ecf1b0e",
+		"type": "function",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Washing",
+		"func": "\nconst power = parseFloat(msg.payload);\nif (isNaN(power)) {\n    return null;\n}\n\nmsg = {\n    \"topic\": \"m5go/update\",\n    \"payload\": {\n        \"title\":\"WASHING\",\n        \"subtitle\": `${power} W`,\n        \"color\":\"green\",\n        \"animation\": 3,\n        \"sound\": null,\n        \"menu\":[\"check\",null,\"off\"]\n    }\n};\n\nreturn msg;",
+		"outputs": 1,
+		"noerr": 0,
+		"initialize": "",
+		"finalize": "",
+		"libs": [],
+		"x": 420,
+		"y": 680,
+		"wires": [
+			[
+				"dc3f2b62f20a295a"
+			]
+		]
+	},
+	{
+		"id": "859aa68c24db4712",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "STOP",
+		"rules": [
+			{
+				"t": "set",
+				"p": "payload",
+				"pt": "msg",
+				"to": "STOP",
+				"tot": "str"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 450,
+		"y": 800,
+		"wires": [
+			[
+				"cdd6262315213f6f",
+				"a7a25cca6b1fda2c"
+			]
+		]
+	},
+	{
+		"id": "cdd6262315213f6f",
+		"type": "looptimer",
+		"z": "79c2c3a003bb1c4a",
+		"duration": "30",
+		"units": "Second",
+		"maxloops": "100",
+		"maxtimeout": "1",
+		"maxtimeoutunits": "Hour",
+		"name": "",
+		"x": 630,
+		"y": 760,
+		"wires": [
+			[
+				"dc3f2b62f20a295a"
+			],
+			[]
+		]
+	},
+	{
+		"id": "70c5c1bf89809632",
+		"type": "debug",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"active": true,
+		"tosidebar": true,
+		"console": false,
+		"tostatus": false,
+		"complete": "true",
+		"targetType": "full",
+		"statusVal": "",
+		"statusType": "auto",
+		"x": 750,
+		"y": 260,
+		"wires": []
+	},
+	{
+		"id": "27ad71edc02918cb",
+		"type": "function",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Show Power",
+		"func": "const state = flow.get('state');\nif (!state || state !== 'wash') {\n    return null;\n}\nconst power = parseFloat(msg.payload);\nif (isNaN(power)) {\n    return null;\n}\n    \nmsg = {\n    \"topic\": \"m5go/update\",\n    \"payload\": {\n        \"subtitle\": `${power.toFixed(1)}W`,\n    }\n};\n    \nreturn msg;\n",
+		"outputs": 1,
+		"noerr": 0,
+		"initialize": "",
+		"finalize": "",
+		"libs": [],
+		"x": 430,
+		"y": 460,
+		"wires": [
+			[
+				"dc3f2b62f20a295a"
+			]
+		]
+	},
+	{
+		"id": "7cec374f24fbc42e",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Save State",
+		"rules": [
+			{
+				"t": "set",
+				"p": "state",
+				"pt": "flow",
+				"to": "topic",
+				"tot": "msg"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 750,
+		"y": 320,
+		"wires": [
+			[
+				"963d65eb6cfa6bfd"
+			]
+		]
+	},
+	{
+		"id": "d997a795180eef8f",
+		"type": "inject",
+		"z": "79c2c3a003bb1c4a",
+		"name": "Test Sound",
+		"props": [
+			{
+				"p": "topic",
+				"vt": "str"
+			},
+			{
+				"p": "payload"
+			}
+		],
+		"repeat": "",
+		"crontab": "",
+		"once": false,
+		"onceDelay": 0.1,
+		"topic": "m5go/update",
+		"payload": "{\"title\":\"TEST\",\"color\":\"yellow\",\"sound\":\"/bell.mp3\",\"menu\":[\"check\",\"snooze\",\"off\"]}",
+		"payloadType": "json",
+		"x": 120,
+		"y": 540,
+		"wires": [
+			[
+				"dc3f2b62f20a295a"
+			]
+		]
+	},
+	{
+		"id": "ed5d50f6a94ff4cb",
+		"type": "inject",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"props": [
+			{
+				"p": "payload"
+			},
+			{
+				"p": "topic",
+				"vt": "str"
+			}
+		],
+		"repeat": "",
+		"crontab": "",
+		"once": false,
+		"onceDelay": 0.1,
+		"topic": "off",
+		"payload": "",
+		"payloadType": "date",
+		"x": 130,
+		"y": 480,
+		"wires": [
+			[
+				"7cec374f24fbc42e"
+			]
+		]
+	},
+	{
+		"id": "28f0424687ab0ed7",
+		"type": "function",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"func": "\nconst msg1 = {\n    \"topic\": \"m5go/update\",\n    \"payload\": {\n        \"title\":\"IDLE\",\n        \"color\": \"blue\",\n        \"animation\": 1,\n        \"sound\":null,\n        \"menu\":[\"check\",null,\"off\"]\n    }\n};\n\nconst msg2 = {\n    \"topic\": \"m5go/sleep\",\n    \"payload\": \"light\",\n};\n\nreturn [[msg1, msg2]];",
+		"outputs": 1,
+		"noerr": 0,
+		"initialize": "",
+		"finalize": "",
+		"libs": [],
+		"x": 420,
+		"y": 560,
+		"wires": [
+			[
+				"05403b93faa789b5"
+			]
+		]
+	},
+	{
+		"id": "a7a25cca6b1fda2c",
+		"type": "stoptimer",
+		"z": "79c2c3a003bb1c4a",
+		"duration": "10",
+		"units": "Second",
+		"payloadtype": "num",
+		"payloadval": "0",
+		"name": "",
+		"x": 660,
+		"y": 980,
+		"wires": [
+			[
+				"dc3f2b62f20a295a"
+			],
+			[]
+		]
+	},
+	{
+		"id": "e544eec30d97daa7",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "sleep",
+		"rules": [
+			{
+				"t": "set",
+				"p": "payload",
+				"pt": "msg",
+				"to": "light",
+				"tot": "str"
+			},
+			{
+				"t": "set",
+				"p": "topic",
+				"pt": "msg",
+				"to": "m5go/sleep",
+				"tot": "str"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 490,
+		"y": 980,
+		"wires": [
+			[
+				"a7a25cca6b1fda2c"
+			]
+		]
+	},
+	{
+		"id": "05403b93faa789b5",
+		"type": "delay",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"pauseType": "rate",
+		"timeout": "1",
+		"timeoutUnits": "seconds",
+		"rate": "1",
+		"nbRateUnits": "0.25",
+		"rateUnits": "second",
+		"randomFirst": "1",
+		"randomLast": "5",
+		"randomUnits": "seconds",
+		"drop": false,
+		"allowrate": false,
+		"outputs": 1,
+		"x": 570,
+		"y": 560,
+		"wires": [
+			[
+				"dc3f2b62f20a295a"
+			]
+		]
+	},
+	{
+		"id": "b8d8d10f.acba5",
+		"type": "server",
+		"name": "Home Assistant",
+		"version": 2,
+		"addon": true,
+		"rejectUnauthorizedCerts": true,
+		"ha_boolean": "y|yes|true|on|home|open",
+		"connectionDelay": true,
+		"cacheJson": true,
+		"heartbeat": false,
+		"heartbeatInterval": "30"
+	},
+	{
+		"id": "9e2295db45bd7cb8",
+		"type": "mqtt-broker",
+		"name": "HASSIO Mosquitto",
+		"broker": "core-mosquitto",
+		"port": "1883",
+		"clientid": "node-red",
+		"autoConnect": true,
+		"usetls": false,
+		"protocolVersion": "4",
+		"keepalive": "60",
+		"cleansession": true,
+		"birthTopic": "",
+		"birthQos": "0",
+		"birthRetain": "false",
+		"birthPayload": "",
+		"birthMsg": {},
+		"closeTopic": "",
+		"closeQos": "0",
+		"closeRetain": "false",
+		"closePayload": "",
+		"closeMsg": {},
+		"willTopic": "",
+		"willQos": "0",
+		"willRetain": "false",
+		"willPayload": "",
+		"willMsg": {},
+		"sessionExpiry": ""
+	}
+]
