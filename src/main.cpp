@@ -16,21 +16,20 @@
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-AudioGeneratorMP3 *mp3 = NULL;
-AudioFileSourceSPIFFS *file = NULL;
-AudioOutputI2S *out = NULL;
-AudioFileSourceID3 *id3 = NULL;
+AudioGeneratorMP3 *mp3;
+AudioFileSourceSPIFFS *file;
+AudioFileSourceID3 *id3;
+AudioOutputI2S *out;
 
-
-// Configure the name and password of the connected wifi and your MQTT Serve host.  配置所连接wifi的名称、密码以及你MQTT服务器域名
+// Configure the name and password of the connected wifi and your MQTT Serve host.
 const char* ssid = "***REMOVED***";
 const char* password = "***REMOVED***";
 const char* mqtt_server = "mqtt.***REMOVED***";
 
-unsigned long lastMsg = 0;
-#define MSG_BUFFER_SIZE	(50)
-char msg[MSG_BUFFER_SIZE];
-int value = 0;
+// unsigned long lastMsg = 0;
+// #define MSG_BUFFER_SIZE	(50)
+// char msg[MSG_BUFFER_SIZE];
+// int value = 0;
 
 void setupWifi();
 void mqtt_callback(char* topic, byte* payload, unsigned int length);
@@ -50,18 +49,36 @@ void setup(void) {
     client.setCallback(mqtt_callback);
 
     FastLED.addLeds<NEOPIXEL, 15>(leds, NUM_LEDS);
+
+    out = new AudioOutputI2S(0, 1); // Output to builtInDAC
+    out->SetOutputModeMono(true);
 }
+
+int8_t getBatteryLevel() {
+    Wire.beginTransmission(0x75);
+    Wire.write(0x78);
+    if (Wire.endTransmission(false) == 0 && Wire.requestFrom(0x75, 1)) {
+        switch (Wire.read() & 0xF0) {
+        case 0xE0: return 25;
+        case 0xC0: return 50;
+        case 0x80: return 75;
+        case 0x00: return 100;
+        default: return 0;
+        }
+    }
+    return -1;
+}
+
 
 void stop_sound() {
     mp3->stop();
-    // delete mp3;
+
+    delete mp3;
     mp3 = NULL;
-    // delete out;
-    // out = NULL;
-    // delete id3;
-    // id3 = NULL;
-    // delete file;
-    // file = NULL;
+    delete id3;
+    id3 = NULL;
+    delete file;
+    file = NULL;
 }
 
 void play_sound(const char *sound) {    
@@ -69,11 +86,10 @@ void play_sound(const char *sound) {
         stop_sound();
     }
 
-    if (strlen(sound)) {
+    if (sound && strlen(sound)) {
+        // M5.Lcd.drawString(sound, 160, 0, GFXFF);
         file = new AudioFileSourceSPIFFS(sound);
         id3 = new AudioFileSourceID3(file);
-        out = new AudioOutputI2S(0, 1); // Output to builtInDAC
-        out->SetOutputModeMono(true);
         mp3 = new AudioGeneratorMP3();
         mp3->begin(id3, out);
     }
@@ -146,11 +162,6 @@ void mqtt_callback(char* raw_topic, byte* payload, unsigned int length) {
         M5.Lcd.setTextColor(TFT_WHITE, TFT_BLACK);
         M5.Lcd.setFreeFont(FMB24);
 
-        if (doc.containsKey("sound")) {
-            const char *sound = doc["sound"];
-            play_sound(sound);
-        }
-
         if (doc.containsKey("title")) {
             const char *title = doc["title"];
             if (!last_title.equals(title)) {
@@ -169,6 +180,11 @@ void mqtt_callback(char* raw_topic, byte* payload, unsigned int length) {
             M5.Lcd.drawString(subtitle, 160, 120, GFXFF);
         } else {
             M5.Lcd.fillRect(0, 120-20, 320, 40, TFT_BLACK);
+        }
+
+        if (doc.containsKey("sound")) {
+            const char *sound = doc["sound"];
+            play_sound(sound);
         }
 
         if (doc.containsKey("color")) {
@@ -200,7 +216,6 @@ void mqtt_callback(char* raw_topic, byte* payload, unsigned int length) {
             const char *color = doc["color"];
             led_chase(color);
         }
-
     }
 }
 
