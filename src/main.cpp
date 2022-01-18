@@ -16,9 +16,9 @@
 #include "led_animation.h"
 
 // Configure the name and password of the connected wifi and your MQTT Serve host.
-const char* ssid = "***REMOVED***";
-const char* password = "***REMOVED***";
-const char* mqtt_server = "mqtt.***REMOVED***";
+const char* ssid = "playmates";
+const char* password = "since1953";
+const char* mqtt_server = "mqtt.playmates";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
