@@ -192,8 +192,8 @@
 		"correl": "",
 		"expiry": "",
 		"broker": "9e2295db45bd7cb8",
-		"x": 880,
-		"y": 640,
+		"x": 1060,
+		"y": 660,
 		"wires": []
 	},
 	{
@@ -279,7 +279,7 @@
 		"to": "",
 		"reg": false,
 		"x": 410,
-		"y": 760,
+		"y": 800,
 		"wires": [
 			[
 				"cdd6262315213f6f"
@@ -348,6 +348,11 @@
 				"to": "idle"
 			},
 			{
+				"name": "A",
+				"from": "idle",
+				"to": "off"
+			},
+			{
 				"name": "B",
 				"from": "done",
 				"to": "snooze"
@@ -387,7 +392,7 @@
 		"type": "function",
 		"z": "79c2c3a003bb1c4a",
 		"name": "Power On/Off",
-		"func": "const power = parseFloat(msg.payload);\n\nif (power > 1.0) {\n    msg.topic = \"power_on\";\n} else {\n    msg.topic = \"power_off\";\n}\n\nreturn msg;",
+		"func": "const power = parseFloat(msg.payload);\n\nif (power > 1.75) {\n    msg.topic = \"power_on\";\n} else {\n    msg.topic = \"power_off\";\n}\n\nreturn msg;",
 		"outputs": 1,
 		"noerr": 0,
 		"initialize": "",
@@ -427,7 +432,7 @@
 		"id": "963d65eb6cfa6bfd",
 		"type": "switch",
 		"z": "79c2c3a003bb1c4a",
-		"name": "",
+		"name": "State",
 		"property": "topic",
 		"propertyType": "msg",
 		"rules": [
@@ -463,26 +468,36 @@
 		"checkall": "true",
 		"repair": false,
 		"outputs": 6,
-		"x": 90,
+		"x": 110,
 		"y": 680,
 		"wires": [
 			[
 				"859aa68c24db4712",
-				"28f0424687ab0ed7"
+				"28f0424687ab0ed7",
+				"3a448fb8888905cb",
+				"67d7ce73b32d7413"
 			],
 			[
 				"92f7001d2a4693d1",
-				"859aa68c24db4712"
+				"859aa68c24db4712",
+				"3a448fb8888905cb",
+				"67d7ce73b32d7413"
 			],
 			[
 				"b138f46d8ecf1b0e",
+				"859aa68c24db4712",
+				"3a448fb8888905cb",
+				"67d7ce73b32d7413"
+			],
+			[
+				"be07f3c571dd8368",
+				"3a448fb8888905cb",
+				"67d7ce73b32d7413"
+			],
+			[
+				"48c18a6c1312d312",
+				"67d7ce73b32d7413",
 				"859aa68c24db4712"
-			],
-			[
-				"be07f3c571dd8368"
-			],
-			[
-				"48c18a6c1312d312"
 			],
 			[]
 		]
@@ -513,12 +528,12 @@
 		"from": "",
 		"to": "",
 		"reg": false,
-		"x": 400,
-		"y": 880,
+		"x": 420,
+		"y": 900,
 		"wires": [
 			[
 				"dc3f2b62f20a295a",
-				"859aa68c24db4712"
+				"c9e6723eaff11a3f"
 			]
 		]
 	},
@@ -561,7 +576,7 @@
 		"finalize": "",
 		"libs": [],
 		"x": 420,
-		"y": 680,
+		"y": 760,
 		"wires": [
 			[
 				"dc3f2b62f20a295a"
@@ -588,11 +603,10 @@
 		"to": "",
 		"reg": false,
 		"x": 450,
-		"y": 800,
+		"y": 840,
 		"wires": [
 			[
-				"cdd6262315213f6f",
-				"a7a25cca6b1fda2c"
+				"cdd6262315213f6f"
 			]
 		]
 	},
@@ -606,8 +620,8 @@
 		"maxtimeout": "1",
 		"maxtimeoutunits": "Hour",
 		"name": "",
-		"x": 630,
-		"y": 760,
+		"x": 650,
+		"y": 800,
 		"wires": [
 			[
 				"dc3f2b62f20a295a"
@@ -620,7 +634,7 @@
 		"type": "debug",
 		"z": "79c2c3a003bb1c4a",
 		"name": "",
-		"active": true,
+		"active": false,
 		"tosidebar": true,
 		"console": false,
 		"tostatus": false,
@@ -699,7 +713,7 @@
 		"topic": "m5go/update",
 		"payload": "{\"title\":\"TEST\",\"color\":\"yellow\",\"sound\":\"/bell.mp3\",\"menu\":[\"check\",\"snooze\",\"off\"]}",
 		"payloadType": "json",
-		"x": 120,
+		"x": 880,
 		"y": 540,
 		"wires": [
 			[
@@ -740,14 +754,14 @@
 		"id": "28f0424687ab0ed7",
 		"type": "function",
 		"z": "79c2c3a003bb1c4a",
-		"name": "",
-		"func": "\nconst msg1 = {\n    \"topic\": \"m5go/update\",\n    \"payload\": {\n        \"title\":\"IDLE\",\n        \"color\": \"blue\",\n        \"animation\": 1,\n        \"sound\":null,\n        \"menu\":[\"check\",null,\"off\"]\n    }\n};\n\nconst msg2 = {\n    \"topic\": \"m5go/sleep\",\n    \"payload\": \"light\",\n};\n\nreturn [[msg1, msg2]];",
+		"name": "Off",
+		"func": "\nconst msg1 = {\n    \"topic\": \"m5go/update\",\n    \"payload\": {\n        \"title\":\"OFF\",\n        \"color\": \"yellow\",\n        \"animation\": 1,\n        \"sound\":null,\n        \"menu\":[\"check\",null,\"off\"]\n    }\n};\n\nconst msg2 = {\n    \"topic\": \"m5go/sleep\",\n    \"payload\": \"light\",\n};\n\nreturn [[msg1, msg2]];",
 		"outputs": 1,
 		"noerr": 0,
 		"initialize": "",
 		"finalize": "",
 		"libs": [],
-		"x": 420,
+		"x": 410,
 		"y": 560,
 		"wires": [
 			[
@@ -764,8 +778,8 @@
 		"payloadtype": "num",
 		"payloadval": "0",
 		"name": "",
-		"x": 660,
-		"y": 980,
+		"x": 650,
+		"y": 660,
 		"wires": [
 			[
 				"dc3f2b62f20a295a"
@@ -799,8 +813,8 @@
 		"from": "",
 		"to": "",
 		"reg": false,
-		"x": 490,
-		"y": 980,
+		"x": 450,
+		"y": 660,
 		"wires": [
 			[
 				"a7a25cca6b1fda2c"
@@ -829,6 +843,155 @@
 		"wires": [
 			[
 				"dc3f2b62f20a295a"
+			]
+		]
+	},
+	{
+		"id": "c9e6723eaff11a3f",
+		"type": "stoptimer",
+		"z": "79c2c3a003bb1c4a",
+		"duration": "7",
+		"units": "Minute",
+		"payloadtype": "num",
+		"payloadval": "0",
+		"name": "",
+		"x": 640,
+		"y": 940,
+		"wires": [
+			[
+				"29054b19dcf85b4a"
+			],
+			[]
+		]
+	},
+	{
+		"id": "3f71a72bd36572b7",
+		"type": "inject",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"props": [
+			{
+				"p": "payload"
+			},
+			{
+				"p": "topic",
+				"vt": "str"
+			}
+		],
+		"repeat": "",
+		"crontab": "",
+		"once": false,
+		"onceDelay": 0.1,
+		"topic": "power_on",
+		"payload": "100",
+		"payloadType": "num",
+		"x": 130,
+		"y": 380,
+		"wires": [
+			[
+				"30094a481c216fcb"
+			]
+		]
+	},
+	{
+		"id": "196aa89248c18a61",
+		"type": "inject",
+		"z": "79c2c3a003bb1c4a",
+		"name": "",
+		"props": [
+			{
+				"p": "payload"
+			},
+			{
+				"p": "topic",
+				"vt": "str"
+			}
+		],
+		"repeat": "",
+		"crontab": "",
+		"once": false,
+		"onceDelay": 0.1,
+		"topic": "power_off",
+		"payload": "",
+		"payloadType": "date",
+		"x": 160,
+		"y": 420,
+		"wires": [
+			[
+				"30094a481c216fcb"
+			]
+		]
+	},
+	{
+		"id": "3a448fb8888905cb",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "STOP",
+		"rules": [
+			{
+				"t": "set",
+				"p": "payload",
+				"pt": "msg",
+				"to": "STOP",
+				"tot": "str"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 450,
+		"y": 940,
+		"wires": [
+			[
+				"c9e6723eaff11a3f"
+			]
+		]
+	},
+	{
+		"id": "29054b19dcf85b4a",
+		"type": "function",
+		"z": "79c2c3a003bb1c4a",
+		"name": "make new msg",
+		"func": "\nreturn {\n    \"topic\": \"done\",\n    \"payload\": \"\"\n};",
+		"outputs": 1,
+		"noerr": 0,
+		"initialize": "",
+		"finalize": "",
+		"libs": [],
+		"x": 820,
+		"y": 940,
+		"wires": [
+			[
+				"30094a481c216fcb"
+			]
+		]
+	},
+	{
+		"id": "67d7ce73b32d7413",
+		"type": "change",
+		"z": "79c2c3a003bb1c4a",
+		"name": "STOP",
+		"rules": [
+			{
+				"t": "set",
+				"p": "payload",
+				"pt": "msg",
+				"to": "STOP",
+				"tot": "str"
+			}
+		],
+		"action": "",
+		"property": "",
+		"from": "",
+		"to": "",
+		"reg": false,
+		"x": 450,
+		"y": 700,
+		"wires": [
+			[
+				"a7a25cca6b1fda2c"
 			]
 		]
 	},
