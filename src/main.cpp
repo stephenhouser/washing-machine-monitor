@@ -41,7 +41,7 @@ void setup(void) {
     SPIFFS.begin();
 
     setupWifi();
-    client.setServer(MQTT_SERVER, 1883);
+    client.setServer(MQTT_HOST, 1883);
     client.setCallback(mqtt_callback);
 
     led_animation_setup();
@@ -229,7 +229,7 @@ void reConnect() {
         String clientId = "M5Go-";
         clientId += String(random(0xffff), HEX);
         // Attempt to connect.
-        if (client.connect(clientId.c_str(), MQTT_USER, MATT_PASS)) {
+        if (client.connect(clientId.c_str(), MQTT_USER, MQTT_PASS)) {
             delay(1000);
             M5.Lcd.printf("\nSuccess\n");
             // Once connected, publish an announcement to the topic. 
