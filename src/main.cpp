@@ -15,10 +15,9 @@
 
 #include "led_animation.h"
 
+#include "secrets.h"
+
 // Configure the name and password of the connected wifi and your MQTT Serve host.
-const char* ssid = "playmates";
-const char* password = "since1953";
-const char* mqtt_server = "mqtt.playmates";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -42,7 +41,7 @@ void setup(void) {
     SPIFFS.begin();
 
     setupWifi();
-    client.setServer(mqtt_server, 1883);
+    client.setServer(MQTT_SERVER, 1883);
     client.setCallback(mqtt_callback);
 
     led_animation_setup();
@@ -90,6 +89,7 @@ void mqtt_callback(char* raw_topic, byte* payload, unsigned int length) {
     StaticJsonDocument<256> doc;
 
     String topic = String(raw_topic);
+    M5.Lcd.printf("T=%s\n", raw_topic);
 
     if (topic.equals("m5go/sleep")) {
         if (length >= 5 && strcmp("light", (const char *)payload)) {
@@ -210,7 +210,7 @@ void setupWifi() {
     M5.Lcd.setCursor(0, 10);
     M5.Lcd.printf("Connecting to wifi");
     WiFi.mode(WIFI_STA);  //Set the mode to WiFi station mode. 
-    WiFi.begin(ssid, password); //Start Wifi connection.
+    WiFi.begin(SSID, SSID_PASS); //Start Wifi connection.
 
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
@@ -228,14 +228,15 @@ void reConnect() {
         // Create a random client ID.
         String clientId = "M5Go-";
         clientId += String(random(0xffff), HEX);
-        // Attempt to connect.  尝试重新连接
-        if (client.connect(clientId.c_str())) {
+        // Attempt to connect.
+        if (client.connect(clientId.c_str(), MQTT_USER, MATT_PASS)) {
+            delay(1000);
             M5.Lcd.printf("\nSuccess\n");
             // Once connected, publish an announcement to the topic. 
-            // client.publish("M5G", "hello world");
+            client.publish("m5go/hello", "hello world");
             // ... and resubscribe. 
             client.subscribe("m5go/#");
-            M5.Lcd.clearDisplay();
+            //M5.Lcd.clearDisplay();
         } else {
             M5.Lcd.print("failed, rc=");
             M5.Lcd.print(client.state());
